@@ -1,0 +1,7 @@
+-r train.txt
+pillow>=10.0
+python-multipart>=0.0.9
+locust>=2.20
+pytest>=8.0
+ruff>=0.5
+black>=24.0

@@ -1,0 +1,8 @@
+-r serve.txt
+datasets>=2.19
+accelerate>=0.34
+trl>=0.20
+scikit-learn>=1.4
+bitsandbytes>=0.43; sys_platform == "linux"
+# unsloth                 # optional, CUDA only: pip install unsloth
+# mlflow / wandb          # train_lora.report_to

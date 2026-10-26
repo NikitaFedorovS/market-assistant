@@ -1,0 +1,19 @@
+data_dir: data
+persona_path: configs/persona.md
+synth:
+  n_products: 5000
+  n_orders: 3000
+  dialogs_per_intent: 1500
+  router_samples_per_intent: 3500
+  seed: 42
+sft:
+  min_chars: 2
+  max_chars: 1200
+  dedup_threshold: 0.9
+  general_mix_ratio: 0.25
+  general_dataset: null        # e.g. a HF instruct dataset with a `messages` column
+  general_max_samples: 3000
+  splits: [0.9, 0.05, 0.05]
+  teacher_base_url: null       # OpenAI-compatible teacher for persona rewriting (null = rule-based)
+  teacher_model: null
+  seed: 42

@@ -1,0 +1,17 @@
+embedder: BAAI/bge-m3
+reranker: null                      # BAAI/bge-reranker-v2-m3 measured: R@5 1.0 but R@1 0.983 -> 0.888 on this KB, +7 s/query on CPU (see README)
+device: null                        # null = auto; cpu keeps the GPU for the LLM
+index_dir: data/index
+collection: kb
+qdrant_url: null                    # null = embedded on-disk Qdrant in index_dir; or http://qdrant:6333
+chunk_tokens: 300
+chunk_overlap: 50
+bm25_top_k: 50
+dense_top_k: 50
+rrf_k: 60
+final_top_k: 5
+context_token_budget: 1500          # hard cap on RAG context (latency + KV-cache / OOM guard)
+compare_embedders:
+  - cointegrated/rubert-tiny2
+  - intfloat/multilingual-e5-small
+  - BAAI/bge-m3

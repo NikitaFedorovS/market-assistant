@@ -1,0 +1,70 @@
+# GPU host: vLLM (LLM + persona LoRA), gateway API, Qdrant, image service, Prometheus, Grafana.
+# Requires NVIDIA Container Toolkit. Start: `make serve` (= docker compose up -d).
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices: [{driver: nvidia, count: all, capabilities: [gpu]}]
+
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.11.0
+    <<: *gpu
+    entrypoint: ["bash", "scripts/run_vllm.sh"]
+    working_dir: /workspace
+    volumes:
+      - ./scripts:/workspace/scripts:ro
+      - ./configs:/workspace/configs:ro
+      - ./models:/workspace/models:ro
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+    ports: ["8001:8001"]
+    ipc: host
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8001/health"]
+      interval: 30s
+      start_period: 300s
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.0
+    volumes: [qdrant-data:/qdrant/storage]
+    ports: ["6333:6333"]
+
+  api:
+    build: {context: ., dockerfile: docker/api.Dockerfile}
+    depends_on: [vllm, qdrant]
+    environment:
+      MA__SERVE__LLM__BACKEND: openai
+      MA__SERVE__LLM__BASE_URL: http://vllm:8001/v1
+      MA__RAG__QDRANT_URL: http://qdrant:6333
+    env_file: [{path: .env, required: false}]
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models:ro
+      - hf-cache:/cache/huggingface
+    ports: ["8000:8000"]
+
+  images:
+    build: {context: ., dockerfile: docker/image.Dockerfile}
+    <<: *gpu
+    profiles: [images]          # `docker compose --profile images up` — shares the GPU with vLLM
+    volumes: [hf-cache:/cache/huggingface]
+    ports: ["8002:8002"]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    volumes: [./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    volumes: [./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    ports: ["3000:3000"]
+
+volumes:
+  hf-cache:
+  qdrant-data:

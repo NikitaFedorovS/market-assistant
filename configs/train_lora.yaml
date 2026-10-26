@@ -1,0 +1,23 @@
+base_model: Qwen/Qwen2.5-7B-Instruct
+backend: auto            # auto | unsloth | hf  (auto = unsloth on CUDA if installed)
+load_in_4bit: true       # QLoRA (NF4) — CUDA only; ignored on MPS/CPU
+max_seq_len: 2048
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+output_dir: models/persona-lora
+learning_rate: 1.0e-4
+num_epochs: 2
+batch_size: 4
+grad_accumulation: 4
+warmup_ratio: 0.03
+eval_steps: 200
+save_steps: 200
+logging_steps: 10
+early_stopping_patience: 3
+gradient_checkpointing: true
+pad_to_multiple_of: 8     # 256 on Apple MPS (bounded shapes -> no allocator blow-up)
+report_to: none          # none | mlflow | wandb
+seed: 42

@@ -1,0 +1,8 @@
+base_model: cointegrated/rubert-tiny2
+output_dir: models/router
+max_len: 64
+learning_rate: 5.0e-5
+num_epochs: 3
+batch_size: 64
+confidence_threshold: 0.6
+seed: 42
